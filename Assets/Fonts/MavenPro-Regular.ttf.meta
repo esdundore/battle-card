@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 5101e719e2751ab458f13c4ebbd7641f
+timeCreated: 1493410873
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Maven Pro
+  fontNames:
+  - Maven Pro
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

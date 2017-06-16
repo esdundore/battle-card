@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monster Rancher Battle Card", "Monster Rancher Battle Card.csproj", "{BD138BB8-CA75-3B2F-7540-87B996ADB575}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monster Rancher Battle Card.Editor", "Monster Rancher Battle Card.Editor.csproj", "{1A41F13C-184D-C233-1BE7-DA26012D4476}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD138BB8-CA75-3B2F-7540-87B996ADB575}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD138BB8-CA75-3B2F-7540-87B996ADB575}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD138BB8-CA75-3B2F-7540-87B996ADB575}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD138BB8-CA75-3B2F-7540-87B996ADB575}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A41F13C-184D-C233-1BE7-DA26012D4476}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A41F13C-184D-C233-1BE7-DA26012D4476}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A41F13C-184D-C233-1BE7-DA26012D4476}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A41F13C-184D-C233-1BE7-DA26012D4476}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
