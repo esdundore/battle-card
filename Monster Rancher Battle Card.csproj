@@ -116,6 +116,7 @@
     <Compile Include="Assets\Scripts\Requests\CoroutineWithData.cs" />
     <Compile Include="Assets\Scripts\Requests\GameStateSync.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\AttackView.cs" />
+    <Compile Include="Assets\Scripts\Requests\Model\AttackRequestNoMap.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\DefendRequest.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\DefendTarget.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\DefendView.cs" />

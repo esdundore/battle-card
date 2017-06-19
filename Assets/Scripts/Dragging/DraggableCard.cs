@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using DG.Tweening;
+using System;
 
 public class DraggableCard : DraggingActions {
 
     private int savedHandSlot;
     private WhereIsTheCardOrMonster whereIsCard;
     private VisualStates tempState;
-    private GameObject Target;
 
     void Awake()
     {
@@ -20,9 +20,25 @@ public class DraggableCard : DraggingActions {
         whereIsCard.VisualState = VisualStates.Dragging;
         whereIsCard.BringToFront();
 
+        PlayerArea area = GameStateSync.Instance.playerArea;
         if (GameStateSync.Instance.gameView.phase.Equals(GameStateSync.GUTS_PHASE))
         {
-            GameStateSync.Instance.playerArea.monsterVisual.avatarManager.CardFaceGlowImage.enabled = true;
+            area.monsterVisual.HighlightMonster(area.highlightColor, 3, true);
+        }
+        else if (GameStateSync.Instance.gameView.phase.Equals(GameStateSync.ATTACK_PHASE)
+            || GameStateSync.Instance.gameView.phase.Equals(GameStateSync.DEFEND_PHASE))
+        {
+            foreach (PlayableCard playableCard in GameStateSync.Instance.playableCardView.playableCards)
+            {
+                if (playableCard.cardIndex == savedHandSlot)
+                {
+                    for (int i = 0; i < playableCard.users.Count; i++)
+                    {
+                        area.monsterVisual.HighlightMonster(area.highlightColor, playableCard.users[i], true);
+                        GameStateSync.Instance.targets = playableCard.targets;
+                    }
+                }
+            }
         }
     }
 
@@ -33,11 +49,13 @@ public class DraggableCard : DraggingActions {
 
     public override void OnEndDrag()
     {
-        // turn off user monster highlights
-        MonsterVisual monsterVisual = GameStateSync.Instance.playerArea.monsterVisual;
-        monsterVisual.turnOffAllHighlights(GameStateSync.Instance.playerArea);
-
+        // determine if over a valid target
         GameObject target = DragTarget();
+
+        // turn off user monster highlights
+        PlayerArea area = GameStateSync.Instance.playerArea;
+        MonsterVisual monsterVisual = area.monsterVisual;
+        monsterVisual.turnOffAllHighlights();
 
         if (target != null)
         {
@@ -45,39 +63,47 @@ public class DraggableCard : DraggingActions {
             HandVisual handVisual = GameStateSync.Instance.playerArea.handVisual;
             handVisual.turnOffAllHighlights(GameStateSync.Instance.playerArea);
 
-            // play this card
-            SameDistanceChildren skillSlots = gameObject.transform.parent.GetComponent<SameDistanceChildren>();
-            Transform openSkillSlot = null;
-            // find first open slot
-            foreach (Transform skillSlot in skillSlots.Children)
-            {
-                if(skillSlot.childCount == 0)
-                {
-                    openSkillSlot = skillSlot;
-                    break;
-                }
-            }
+            // target monster index 
+            MonsterManager monsterManager = target.GetComponent<MonsterManager>();
+            AvatarManager avatarManager = target.GetComponentInChildren<AvatarManager>();
+            int targetIndex = monsterManager == null ? 3 : monsterManager.index;
+
+            // find first open skill slot
+            Transform openSkillSlot = monsterVisual.FindOpenSlot(targetIndex);
+
             transform.SetParent(openSkillSlot);
             whereIsCard.SetHandSortingOrder();
             whereIsCard.VisualState = tempState;
-            transform.DOMove(openSkillSlot.transform.position, 1f);
+            transform.DOMove(openSkillSlot.position, 1f);
 
             GameStateSync.Instance.playableRequest.playedCardIndexes.Add(savedHandSlot);
 
             if (GameStateSync.Instance.gameView.phase == GameStateSync.GUTS_PHASE)
             {
-                // discard this
                 // increment guts
-                StartCoroutine(GameStateSync.Instance.HighlightPlayableCards());
+                avatarManager.gutsText.text = (Int32.Parse(avatarManager.gutsText.text) + 1).ToString(); 
+                // make this invisible
+                // this.transform.parent.gameObject.GetComponentInChildren<CanvasRenderer>().SetAlpha(0);
             }
             if (GameStateSync.Instance.gameView.phase == GameStateSync.ATTACK_PHASE)
             {
-                GameStateSync.Instance.HighlightPlayableUsers(savedHandSlot);
+                // add to cards played
+                GameStateSync.Instance.attackRequest.user = monsterManager.index;
+                GameStateSync.Instance.attackRequest.cardsPlayed.Add(savedHandSlot);
+                // highlight user to attack
+                area.monsterVisual.HighlightMonster(area.highlightColor, monsterManager.index, true);
             }
             if (GameStateSync.Instance.gameView.phase == GameStateSync.DEFEND_PHASE)
             {
-                GameStateSync.Instance.HighlightPlayableUsers(savedHandSlot);
+                // add to defend request
+                DefendTarget defendTarget = new DefendTarget();
+                defendTarget.card = savedHandSlot;
+                defendTarget.user = monsterManager.index;
+                GameStateSync.Instance.defendRequest.cardAndTargets.Add(defendTarget);
             }
+
+            // highlight other playable cards
+            StartCoroutine(GameStateSync.Instance.HighlightPlayableCards());
         }
         else
         {
@@ -91,6 +117,7 @@ public class DraggableCard : DraggingActions {
         } 
     }
 
+    // check if hovering over a highlighted monster or avatar
     private GameObject DragTarget()
     {
 
@@ -104,7 +131,9 @@ public class DraggableCard : DraggingActions {
         {
             GameObject gameObject = hit.transform.parent.gameObject;
             MonsterManager monsterManager = gameObject.GetComponent<MonsterManager>();
-            if (monsterManager != null && monsterManager.CardFaceGlowImage.enabled)
+            AvatarManager avatarManager = gameObject.GetComponentInChildren<AvatarManager>();
+            if ((monsterManager != null && monsterManager.CardFaceGlowImage.enabled) ||
+                (avatarManager != null && avatarManager.CardFaceGlowImage.enabled))
             {
                 target = gameObject;
                 break;

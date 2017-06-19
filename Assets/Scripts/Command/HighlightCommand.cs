@@ -14,8 +14,8 @@
     public override void StartCommandExecution()
     {
         if (isMonster)
-            playerArea.monsterVisual.HighlightMonster(playerArea, index, true);
+            playerArea.monsterVisual.HighlightMonster(playerArea.highlightColor, index, true);
         else
-            playerArea.handVisual.HighlightCard(playerArea, index, true);
+            playerArea.handVisual.HighlightCard(playerArea.highlightColor, index, true);
     }
 }

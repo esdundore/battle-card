@@ -99,46 +99,38 @@ public class MonsterVisual : MonoBehaviour
     }
 
     // highlight a monster card
-    public void HighlightMonster(PlayerArea area, int index, bool isEnabled)
+    public void HighlightMonster(Color32 highlightColor, int monsterIndex, bool isEnabled)
     {
-        foreach (Transform child in slots.Children[index])
+        Transform child = slots.Children[monsterIndex];
+        MonsterManager monsterManager = child.GetComponentInChildren<MonsterManager>();
+        if (monsterManager == null)
         {
-            //highlight
-            Color32 highlightColor = new Color32(90, 180, 90, 225);
-            if (area.owner == 0)
-            {
-                highlightColor = new Color32(180, 90, 90, 225);
-            }
-            MonsterManager monsterManager = child.GetComponentInChildren<MonsterManager>();
-            if (monsterManager == null)
-            {
-                avatarManager.CardFaceGlowImage.color = highlightColor;
-                avatarManager.CardFaceGlowImage.enabled = isEnabled;
-            }
-            else
-            {
-                monsterManager.CardFaceGlowImage.color = highlightColor;
-                monsterManager.CardFaceGlowImage.enabled = isEnabled;
-            }
+            avatarManager.CardFaceGlowImage.color = highlightColor;
+            avatarManager.CardFaceGlowImage.enabled = isEnabled;
+        }
+        else
+        {
+            monsterManager.CardFaceGlowImage.color = highlightColor;
+            monsterManager.CardFaceGlowImage.enabled = isEnabled;
         }
         Command.CommandExecutionComplete();
     }
     // turn off all highlights
-    public void turnOffAllHighlights(PlayerArea area)
+    public void turnOffAllHighlights()
     {
         for (int i = 0; i < slots.Children.Length; i++)
         {
             if (slots.Children[i].transform != null)
             {
-                HighlightMonster(area, i, false);
+                HighlightMonster(new Color32(), i, false);
             }
         }
     }
 
-    public void DrawArrow(PlayerArea playerArea, PlayerArea targetArea, int user, int target)
+    public void DrawArrow(PlayerArea targetArea, int user, int target)
     {
         GameObject targetArrow = GameObject.Instantiate(GameStateSync.Instance.ArrowTarget) as GameObject;
-        Vector3 startVector = playerArea.monsterVisual.slots.Children[user].transform.position;
+        Vector3 startVector = slots.Children[user].transform.position;
         Vector3 endVector = targetArea.monsterVisual.slots.Children[target].transform.position;
         LineRenderer lr = targetArrow.GetComponentInChildren<LineRenderer>();
         if (lr == null)
@@ -167,6 +159,56 @@ public class MonsterVisual : MonoBehaviour
         s.Append(attacker.transform.DOMove(defenderPosition, 0.5f).SetEase(Ease.InQuint));
         s.Append(attacker.transform.DOMove(originalPosition, 0.5f));
 
+    }
+
+    // remove card with a given index from table
+    public void RemoveCardAtIndex(int monsterPos, int skillPos)
+    {
+        foreach (Transform monsterChild in slots.Children[monsterPos].transform)
+        {
+            foreach (Transform child in monsterChild.GetComponentInParent<SameDistanceChildren>().Children[skillPos])
+            {
+                Destroy(child.gameObject);
+            }
+        }
+        Command.CommandExecutionComplete();
+    }
+
+    // method to add a card to the table
+    public void AddCard(CardAsset cardAsset, Vector3 handPosition, int monsterIndex)
+    {
+        // create a new card from prefab
+        GameObject card;
+        card = GameObject.Instantiate(GameStateSync.Instance.SkillCardPrefab, handPosition, Quaternion.Euler(new Vector3(0f, -179f, 0f))) as GameObject;
+
+        // apply the look of the card based on the info from CardAsset
+        SkillCardManager manager = card.GetComponent<SkillCardManager>();
+        manager.cardAsset = cardAsset;
+        manager.ReadCardFromAsset();
+
+        // parent this card to our open slot
+        Transform openSlot = FindOpenSlot(monsterIndex);
+        card.transform.SetParent(openSlot);
+
+        // Bring card to front while it travels from draw spot to hand
+        WhereIsTheCardOrMonster w = card.GetComponent<WhereIsTheCardOrMonster>();
+        w.BringToFront();
+        w.Slot = monsterIndex;
+
+        // move card to the hand;
+        Sequence s = DOTween.Sequence();
+        s.Insert(0f, card.transform.DORotate(Vector3.zero, GameStateSync.Instance.CardTransitionTime));
+        s.Append(card.transform.DOMove(openSlot.position, GameStateSync.Instance.CardTransitionTime));
+
+        s.OnComplete(() => Command.CommandExecutionComplete());
+    }
+
+    public Transform FindOpenSlot(int monsterIndex)
+    {
+        Transform monsterSlot = slots.Children[monsterIndex];
+        foreach (Transform skillSlot in monsterSlot.GetComponentInParent<SameDistanceChildren>().Children)
+            if (skillSlot.childCount == 0) return skillSlot;
+        return null;
     }
 
 }

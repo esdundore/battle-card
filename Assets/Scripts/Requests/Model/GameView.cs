@@ -3,6 +3,8 @@
 [Serializable]
 public class GameView
 {
+    public int attackId = 0;
+    public int defendId = 0;
     public long currentTime;
     public string phase;
     public string currentPlayer;

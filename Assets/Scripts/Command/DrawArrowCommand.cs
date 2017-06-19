@@ -15,7 +15,7 @@
 
     public override void StartCommandExecution()
     {
-        playerArea.monsterVisual.DrawArrow(playerArea, targetArea, user, target);
+        playerArea.monsterVisual.DrawArrow(targetArea, user, target);
         Command.CommandExecutionComplete();
     }
 }

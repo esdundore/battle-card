@@ -34,10 +34,12 @@ public class GameStateSync : MonoBehaviour {
     // the game view
     public GameView gameView = new GameView();
     public PlayableCardView playableCardView = new PlayableCardView();
+    public List<int> targets = new List<int>();
 
     public PlayersRequest playersRequest = new PlayersRequest();
     public PlayableRequest playableRequest = new PlayableRequest();
     public GutsRequest gutsRequest = new GutsRequest();
+    public AttackRequestNoMap attackRequest = new AttackRequestNoMap();
     public DefendRequest defendRequest = new DefendRequest();
 
     public static string PLAYER1 = "player1";
@@ -51,6 +53,7 @@ public class GameStateSync : MonoBehaviour {
     private static string SYNC_REQUEST = "/get-game";
     private static string PLAYABLE_REQUEST = "/playable-cards";
     private static string GUTS_REQUEST = "/make-guts";
+    private static string ATTACK_REQUEST = "/attack";
     private static string DEFEND_REQUEST = "/defend";
     private static string END_ATTACK_REQUEST = "/end-attack";
 
@@ -73,6 +76,11 @@ public class GameStateSync : MonoBehaviour {
         gutsRequest.player1 = PLAYER1;
         gutsRequest.player2 = PLAYER2;
         gutsRequest.discards = new List<int>();
+        attackRequest.player1 = PLAYER1;
+        attackRequest.player2 = PLAYER2;
+        attackRequest.cardsPlayed = new List<int>();
+        attackRequest.targets = new List<int>();
+        attackRequest.damages = new List<int>();
         defendRequest.player1 = PLAYER1;
         defendRequest.player2 = PLAYER2;
         defendRequest.cardAndTargets = new List<DefendTarget>();
@@ -107,7 +115,6 @@ public class GameStateSync : MonoBehaviour {
         yield return cd.coroutine;
         string resultBody = (string) cd.result;
         GameView newGameView = JsonUtility.FromJson<GameView>(resultBody);
-        Debug.Log(resultBody);
 
         // play monsters
         PlayMonsters(opponentArea, ref gameView.opponent.monsters, newGameView.opponent.monsters);
@@ -126,7 +133,10 @@ public class GameStateSync : MonoBehaviour {
         SyncDeck(playerArea, ref gameView.player.deckSize, newGameView.player.deckSize);
 
         // play opponent attack request or defend request
-        SyncTable(opponentArea, playerArea, ref gameView.attackView, newGameView.attackView, ref gameView.defendView, newGameView.defendView);
+        SyncTable(opponentArea, playerArea, 
+            ref gameView.attackView, newGameView.attackView, 
+            ref gameView.defendView, newGameView.defendView,
+            ref gameView, newGameView);
 
         // sync monster state
         SyncMonsters(opponentArea, ref gameView.opponent.monsters, newGameView.opponent.monsters);
@@ -171,8 +181,7 @@ public class GameStateSync : MonoBehaviour {
                 // remove if current card is not null
                 if (playerHand[i] != null && !"".Equals(playerHand[i]))
                 {
-                    Debug.Log("removing a card");
-                    new RemoveACardCommand(area, i, true).AddToQueue();
+                    new RemoveACardCommand(area, i).AddToQueue();
                 }
                 // draw if new card is not null
                 if (newPlayerHand[i] != null && !"".Equals(newPlayerHand[i]))
@@ -200,22 +209,25 @@ public class GameStateSync : MonoBehaviour {
     {
         if (gutsAmount != newGutsAmount)
         {
-            new ChangeTextCommand(ref area.avatar.gutsText, newGutsAmount.ToString()).AddToQueue();
+            new ChangeTextCommand(ref area.monsterVisual.avatarManager.gutsText, newGutsAmount.ToString()).AddToQueue();
             gutsAmount = newGutsAmount;
         }
     }
 
     // TODO: Play currently attack or defense cards from the server
-    public void SyncTable(PlayerArea area, PlayerArea targetArea, ref AttackView attackView, AttackView newAttackView, ref DefendView defendView, DefendView newDefendView)
+    public void SyncTable(PlayerArea area, PlayerArea targetArea, 
+        ref AttackView attackView, AttackView newAttackView, 
+        ref DefendView defendView, DefendView newDefendView,
+        ref GameView gameView, GameView newGameView)
     {
 
-        if (!newAttackView.cardsPlayed.SequenceEqual(attackView.cardsPlayed) && newAttackView.cardsPlayed != null && newAttackView.player1.Equals(PLAYER2))
+        if (newGameView.attackId != gameView.attackId && PLAYER2.Equals(newAttackView.player1))
         {
             // play skill card to table
             for (int i = 0; i < newAttackView.cardsPlayed.Count; i++)
             {
-                new RemoveACardCommand(area, newAttackView.handIndexes[i], true).AddToQueue();
-                new PlaySkillCardCommand(area, FindCardAsset(newAttackView.cardsPlayed[i]), newAttackView.handIndexes[i]).AddToQueue();
+                new RemoveACardCommand(area, newAttackView.handIndexes[i]).AddToQueue();
+                new PlaySkillCardCommand(area, FindCardAsset(newAttackView.cardsPlayed[i]), newAttackView.handIndexes[i], newAttackView.user).AddToQueue();
             }
             // highlight attacking monster
             new HighlightCommand(area, newAttackView.user, true).AddToQueue();
@@ -225,14 +237,33 @@ public class GameStateSync : MonoBehaviour {
                 new DrawArrowCommand(area, targetArea, newAttackView.user, newAttackView.targets[i]).AddToQueue();
             }
             // sync attack view to local
+            gameView.attackId = newGameView.attackId;
             attackView = newAttackView;
         }
 
+        if (newGameView.defendId != gameView.defendId && PLAYER2.Equals(newDefendView.player1))
+        {
+            if (newDefendView == null)
+            {
+                defendView = newDefendView;
+                return;
+            }
+            // play skill card to table
+            for (int i = 0; i < newDefendView.cardAndTargets.Count; i++)
+            {
+                new RemoveACardCommand(area, newDefendView.cardAndTargets[i].handIndex).AddToQueue();
+                new PlaySkillCardCommand(area, FindCardAsset(newDefendView.cardAndTargets[i].card),
+                    newDefendView.cardAndTargets[i].handIndex, newDefendView.cardAndTargets[i].user).AddToQueue();
+            }
 
-        //if (defendView != newDefendView && newAttackView.player1.Equals(PLAYER2))
-        //{
-            // defendView = newDefendView;
-        //}
+            // play attack animation
+            RemoveCardsFromTable();
+            new AttackCommand(playerArea, opponentArea, attackRequest.user, attackRequest.targets[0]).AddToQueue();
+
+            // sync defend view to local
+            gameView.defendId = newGameView.defendId;
+            defendView = newDefendView;
+        }
     }
 
     // TODO: Sync monster states
@@ -281,16 +312,8 @@ public class GameStateSync : MonoBehaviour {
         if (DEFEND_PHASE.Equals(gameView.phase)) EndDefend();
         if (ATTACK_PHASE.Equals(gameView.phase)) EndAttack();
 
-        // remove played card visuals from table
-        for (int i = 0; i < playerArea.tableVisual.slots.Children.Length; i++)
-        {
-            new RemoveACardCommand(playerArea, i, false).AddToQueue();
-        }
-        // remove played card visuals from opponent table
-        for (int i = 0; i < opponentArea.tableVisual.slots.Children.Length; i++)
-        {
-            new RemoveACardCommand(opponentArea, i, false).AddToQueue();
-        }
+        // remove all cards in played area
+        RemoveCardsFromTable();
 
         // reset played cards
         playableRequest.playedCardIndexes = new List<int>();
@@ -304,6 +327,26 @@ public class GameStateSync : MonoBehaviour {
         RESTTemplate.AsyncPOST(SERVER_NAME + GUTS_REQUEST, JsonUtility.ToJson(gutsRequest));
     }
 
+    // Attack
+    public void MakeAttack()
+    {
+        // disable button
+        playerArea.button.GetComponent<Button>().interactable = false;
+
+        // update the server
+        Debug.Log(JsonUtility.ToJson(attackRequest));
+        RESTTemplate.AsyncPOST(SERVER_NAME + ATTACK_REQUEST, JsonUtility.ToJson(attackRequest));
+
+        // draw targeting arrow
+        foreach (int targetIndex in attackRequest.targets)
+        {
+            new DrawArrowCommand(playerArea, opponentArea, attackRequest.user, targetIndex).AddToQueue();
+        }
+
+        // reset played cards
+        playableRequest.playedCardIndexes = new List<int>();
+    }
+
     // End playing defense cards
     private void EndDefend()
     {
@@ -313,7 +356,7 @@ public class GameStateSync : MonoBehaviour {
 
         // play attack animation
         new AttackCommand(opponentArea, playerArea, gameView.attackView.user, gameView.attackView.targets[0]).AddToQueue();
-        opponentArea.monsterVisual.turnOffAllHighlights(opponentArea);
+        opponentArea.monsterVisual.turnOffAllHighlights();
 
         // reset defend request
         defendRequest.cardAndTargets = new List<DefendTarget>();
@@ -369,6 +412,28 @@ public class GameStateSync : MonoBehaviour {
     {
         string[] tokens = cardName.Split('_');
         return Resources.Load<CardAsset>("Cards/" + tokens[0] + "/" + tokens[1]) as CardAsset;
+    }
+
+    public void RemoveCardsFromTable()
+    {
+        // remove all cards in played area
+        for (int i = 0; i < playerArea.monsterVisual.slots.Children.Length; i++)
+        {
+            SameDistanceChildren skillSlots = playerArea.monsterVisual.slots.Children[i].GetComponent<SameDistanceChildren>();
+            for (int j = 0; j < skillSlots.Children.Length; j++)
+            {
+                new RemoveACardCommand(playerArea, i, j).AddToQueue();
+            }
+        }
+
+        for (int i = 0; i < opponentArea.monsterVisual.slots.Children.Length; i++)
+        {
+            SameDistanceChildren skillSlots = playerArea.monsterVisual.slots.Children[i].GetComponent<SameDistanceChildren>();
+            for (int j = 0; j < skillSlots.Children.Length; j++)
+            {
+                new RemoveACardCommand(opponentArea, i, j).AddToQueue();
+            }
+        }
     }
 
 }

@@ -2,17 +2,19 @@
 
     private PlayerArea playerArea;
     private CardAsset cardAsset;
-    private int index;
+    private int handIndex;
+    private int monsterIndex;
 
-    public PlaySkillCardCommand(PlayerArea playerArea, CardAsset cardAsset, int index)
+    public PlaySkillCardCommand(PlayerArea playerArea, CardAsset cardAsset, int handIndex, int monsterIndex)
     {
         this.playerArea = playerArea;
         this.cardAsset = cardAsset;
-        this.index = index;
+        this.handIndex = handIndex;
+        this.monsterIndex = monsterIndex;
     }
 
     public override void StartCommandExecution()
     {
-        playerArea.tableVisual.AddCard(cardAsset, playerArea.handVisual.slots.Children[index].transform.position, index);
+        playerArea.monsterVisual.AddCard(cardAsset, playerArea.handVisual.FindSlot(handIndex).position, monsterIndex);
     }
 }

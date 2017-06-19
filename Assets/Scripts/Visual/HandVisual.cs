@@ -124,14 +124,13 @@ public class HandVisual : MonoBehaviour
     }
 
     // highlight a card in hand
-    public void HighlightCard(PlayerArea area, int index, bool isTurnOn)
+    public void HighlightCard(Color32 highlightColor, int index, bool isTurnOn)
     {
         foreach (Transform child in slots.Children[index].transform)
         {
             //highlight
             SkillCardManager skillCardManager = child.gameObject.GetComponent<SkillCardManager>();
-            if (area.owner == 0)
-                skillCardManager.CardFaceGlowImage.color = new Color32(180, 90, 90, 225);
+            skillCardManager.CardFaceGlowImage.color = highlightColor;
             skillCardManager.CardFaceGlowImage.enabled = isTurnOn;
         }
         Command.CommandExecutionComplete();
@@ -144,9 +143,14 @@ public class HandVisual : MonoBehaviour
         {
             if (slots.Children[i].transform != null)
             {
-                HighlightCard(area, i, false);
+                HighlightCard(new Color32(), i, false);
             }
         }
+    }
+
+    public Transform FindSlot(int index)
+    {
+        return slots.Children[index];
     }
 
 }

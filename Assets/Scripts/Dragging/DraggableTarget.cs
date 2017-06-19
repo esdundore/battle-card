@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 public class DraggableTarget : DraggingActions
 {
@@ -7,7 +6,6 @@ public class DraggableTarget : DraggingActions
     private LineRenderer lr;
     private Transform triangle;
     private SpriteRenderer triangleSR;
-    private GameObject Target;
 
     void Awake()
     {
@@ -22,18 +20,18 @@ public class DraggableTarget : DraggingActions
     {
         sr.enabled = true;
         lr.enabled = true;
-        MonsterManager monsterManager = this.transform.parent.GetComponent<MonsterManager>();
 
-        //add this user and card played to defend request
-        if (GameStateSync.Instance.gameView.phase.Equals(GameStateSync.DEFEND_PHASE))
+        // turn off user monster highlights
+        PlayerArea playerArea = GameStateSync.Instance.playerArea;
+        playerArea.monsterVisual.turnOffAllHighlights();
+
+        // highlight valid targets
+        PlayerArea area = GameStateSync.Instance.opponentArea;
+        foreach (int target in GameStateSync.Instance.targets)
         {
-            DefendTarget defendTarget = new DefendTarget();
-            List<int> cardsPlayed = GameStateSync.Instance.playableRequest.playedCardIndexes;
-            defendTarget.card = cardsPlayed[cardsPlayed.Count - 1]; // last card played
-            defendTarget.user = monsterManager.index;
-            GameStateSync.Instance.defendRequest.cardAndTargets.Add(defendTarget);
-            GameStateSync.Instance.playerArea.monsterVisual.turnOffAllHighlights(GameStateSync.Instance.playerArea);
+            area.monsterVisual.HighlightMonster(area.highlightColor, target, true);
         }
+
     }
 
     public override void OnDraggingInUpdate()
@@ -67,12 +65,56 @@ public class DraggableTarget : DraggingActions
 
     public override void OnEndDrag()
     {
+        GameObject target = DragTarget();
+
+        // turn off user monster highlights
+        PlayerArea area = GameStateSync.Instance.opponentArea;
+        area.monsterVisual.turnOffAllHighlights();
+
+        if (target != null)
+        {
+            MonsterManager monsterManager = target.GetComponent<MonsterManager>();
+            // set attack target
+            GameStateSync.Instance.attackRequest.targets.Add(monsterManager.index);
+            GameStateSync.Instance.attackRequest.damages.Add(0);
+            // send attack request
+            GameStateSync.Instance.MakeAttack();
+        }
+        else
+        {
+            // highlight monster again
+            this.GetComponentInChildren<MonsterManager>().CardFaceGlowImage.enabled = true;
+        }
 
         transform.localPosition = new Vector3(0f, 0f, 0.4f);
         sr.enabled = false;
         lr.enabled = false;
         triangleSR.enabled = false;
 
+    }
+
+    // check if dragged over a highlighted monster
+    private GameObject DragTarget()
+    {
+
+        GameObject target = null;
+        RaycastHit[] hits;
+        hits = Physics.RaycastAll(origin: Camera.main.transform.position,
+            direction: (-Camera.main.transform.position + this.transform.position).normalized,
+            maxDistance: 30f);
+
+        foreach (RaycastHit hit in hits)
+        {
+            GameObject gameObject = hit.transform.parent.gameObject;
+            MonsterManager monsterManager = gameObject.GetComponent<MonsterManager>();
+            if ((monsterManager != null && monsterManager.CardFaceGlowImage.enabled))
+            {
+                target = gameObject;
+                break;
+            }
+        }
+
+        return target;
     }
 
     protected override bool DragSuccessful()
