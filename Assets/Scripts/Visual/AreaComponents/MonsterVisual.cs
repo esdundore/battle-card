@@ -122,7 +122,7 @@ public class MonsterVisual : MonoBehaviour
         {
             if (slots.Children[i].transform != null)
             {
-                HighlightMonster(new Color32(), i, false);
+                HighlightMonster(new Color32(255,255,255,255), i, false);
             }
         }
     }
@@ -133,12 +133,8 @@ public class MonsterVisual : MonoBehaviour
         Vector3 startVector = slots.Children[user].transform.position;
         Vector3 endVector = targetArea.monsterVisual.slots.Children[target].transform.position;
         LineRenderer lr = targetArrow.GetComponentInChildren<LineRenderer>();
-        if (lr == null)
-        {
-            Debug.Log("something wrong");
-        }
         lr.SetPositions(new Vector3[] { startVector, endVector });
-        lr.sortingLayerName = "Above Everything";
+        lr.sortingLayerName = GameStateSync.ABOVE_EVERYTHING_LAYER;
         lr.enabled = true;
         arrows.Add(lr);
     }
@@ -152,11 +148,20 @@ public class MonsterVisual : MonoBehaviour
         }
 
         MonsterManager attacker = slots.Children[attackerIndex].GetComponentInChildren<MonsterManager>();
-        Vector3 defenderPosition = otherMonsterVisual.slots.Children[defenderIndex].transform.position;
+        Vector3 defenderPosition = otherMonsterVisual.slots.Children[defenderIndex].position;
         Vector3 originalPosition = slots.Children[attackerIndex].transform.position;
+        if (owner == AreaPosition.Top)
+        {
+            defenderPosition = new Vector3(defenderPosition.x, defenderPosition.y + 2, defenderPosition.z);
+        }
+        else
+        {
+            defenderPosition = new Vector3(defenderPosition.x, defenderPosition.y - 2, defenderPosition.z);
+        }
 
         Sequence s = DOTween.Sequence();
         s.Append(attacker.transform.DOMove(defenderPosition, 0.5f).SetEase(Ease.InQuint));
+        s.OnComplete(() => Command.CommandExecutionComplete());
         s.Append(attacker.transform.DOMove(originalPosition, 0.5f));
 
     }
@@ -192,7 +197,7 @@ public class MonsterVisual : MonoBehaviour
 
         // Bring card to front while it travels from draw spot to hand
         WhereIsTheCardOrMonster w = card.GetComponent<WhereIsTheCardOrMonster>();
-        w.BringToFront();
+        w.SendToBack();
         w.Slot = monsterIndex;
 
         // move card to the hand;

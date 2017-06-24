@@ -76,7 +76,13 @@ public class WhereIsTheCardOrMonster : MonoBehaviour {
     public void BringToFront()
     {
         canvas.sortingOrder = TopSortingOrder;
-        canvas.sortingLayerName = "Above Everything";
+        canvas.sortingLayerName = GameStateSync.ABOVE_EVERYTHING_LAYER;
+    }
+
+    public void SendToBack()
+    {
+        canvas.sortingOrder = TopSortingOrder;
+        canvas.sortingLayerName = GameStateSync.TABLE_UI_LAYER;
     }
 
     // not setting sorting order inside of VisualStaes property because when the card is drawn, 
@@ -85,13 +91,13 @@ public class WhereIsTheCardOrMonster : MonoBehaviour {
     {
         if (slot != -1)
             canvas.sortingOrder = HandSortingOrder(slot);
-        canvas.sortingLayerName = "Cards";
+        canvas.sortingLayerName = GameStateSync.CARDS_LAYER;
     }
 
     public void SetTableSortingOrder()
     {
         canvas.sortingOrder = 0;
-        canvas.sortingLayerName = "Monsters";
+        canvas.sortingLayerName = GameStateSync.MONSTERS_LAYER;
     }
 
     private int HandSortingOrder(int placeInHand)

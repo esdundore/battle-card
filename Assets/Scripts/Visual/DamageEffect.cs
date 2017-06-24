@@ -43,19 +43,11 @@ public class DamageEffect : MonoBehaviour {
         // after the effect is shown it gets destroyed.
         Destroy(this.gameObject);
     }
-    /// <summary>
-    /// Creates the damage effect.
-    /// This is a static method, so it should be called like this: DamageEffect.CreateDamageEffect(transform.position, 5);
-    /// </summary>
-    /// <param name="position">Position.</param>
-    /// <param name="amount">Amount.</param>
    
     public static void CreateDamageEffect(Vector3 position, int amount)
     {
         // Instantiate a DamageEffect from prefab
-        GameObject newDamageEffect = new GameObject();
-        //GameObject newDamageEffect = GameObject.Instantiate(GameStateSync.Instance.DamageEffectPrefab, position, Quaternion.identity) as GameObject;
-        newDamageEffect = GameObject.Instantiate(DamageEffectTest.Instance.DamagePrefab, position, Quaternion.identity) as GameObject;
+        GameObject newDamageEffect = GameObject.Instantiate(GameStateSync.Instance.DamageEffectPrefab, position, Quaternion.identity) as GameObject;
         // Get DamageEffect component in this new game object
         DamageEffect de = newDamageEffect.GetComponent<DamageEffect>();
         // Change the amount text to reflect the amount of damage dealt

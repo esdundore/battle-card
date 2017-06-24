@@ -34,6 +34,7 @@ public class DraggableCard : DraggingActions {
                 {
                     for (int i = 0; i < playableCard.users.Count; i++)
                     {
+                        // find targets
                         area.monsterVisual.HighlightMonster(area.highlightColor, playableCard.users[i], true);
                         GameStateSync.Instance.targets = playableCard.targets;
                     }
@@ -75,21 +76,26 @@ public class DraggableCard : DraggingActions {
             whereIsCard.SetHandSortingOrder();
             whereIsCard.VisualState = tempState;
             transform.DOMove(openSkillSlot.position, 1f);
+            whereIsCard.SendToBack();
 
             GameStateSync.Instance.playableRequest.playedCardIndexes.Add(savedHandSlot);
 
             if (GameStateSync.Instance.gameView.phase == GameStateSync.GUTS_PHASE)
             {
                 // increment guts
-                avatarManager.gutsText.text = (Int32.Parse(avatarManager.gutsText.text) + 1).ToString(); 
+                avatarManager.gutsText.text = (Int32.Parse(avatarManager.gutsText.text) + 1).ToString();
                 // make this invisible
-                // this.transform.parent.gameObject.GetComponentInChildren<CanvasRenderer>().SetAlpha(0);
+                Canvas canvas = GetComponentInChildren<Canvas>();
+                canvas.gameObject.SetActive(false);
+                BoxCollider collider = GetComponentInChildren<BoxCollider>();
+                collider.enabled = false;
             }
             if (GameStateSync.Instance.gameView.phase == GameStateSync.ATTACK_PHASE)
             {
                 // add to cards played
                 GameStateSync.Instance.attackRequest.user = monsterManager.index;
                 GameStateSync.Instance.attackRequest.cardsPlayed.Add(savedHandSlot);
+                GameStateSync.Instance.playableRequest.user = monsterManager.index;
                 // highlight user to attack
                 area.monsterVisual.HighlightMonster(area.highlightColor, monsterManager.index, true);
             }

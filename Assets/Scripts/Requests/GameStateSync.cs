@@ -30,6 +30,8 @@ public class GameStateSync : MonoBehaviour {
     // visual player areas
     public PlayerArea playerArea;
     public PlayerArea opponentArea;
+    public Transform previewCard;
+    public Transform environmentCard;
 
     // the game view
     public GameView gameView = new GameView();
@@ -47,6 +49,11 @@ public class GameStateSync : MonoBehaviour {
     public static string GUTS_PHASE = "guts";
     public static string ATTACK_PHASE = "attack";
     public static string DEFEND_PHASE = "defend";
+
+    public static string TABLE_UI_LAYER = "Table UI";
+    public static string MONSTERS_LAYER = "Monsters";
+    public static string CARDS_LAYER = "Cards";
+    public static string ABOVE_EVERYTHING_LAYER = "Above Everything";
 
     private static string SERVER_NAME = "http://localhost:8080";
     private static string START_REQUEST = "/start-match";
@@ -260,6 +267,11 @@ public class GameStateSync : MonoBehaviour {
             RemoveCardsFromTable();
             new AttackCommand(playerArea, opponentArea, attackRequest.user, attackRequest.targets[0]).AddToQueue();
 
+            // reset attack request
+            attackRequest.cardsPlayed = new List<int>();
+            attackRequest.targets = new List<int>();
+            attackRequest.damages = new List<int>();
+
             // sync defend view to local
             gameView.defendId = newGameView.defendId;
             defendView = newDefendView;
@@ -271,13 +283,13 @@ public class GameStateSync : MonoBehaviour {
     {
         for (int i = 0; i < newPlayerMonsters.Count; i++)
         {
-            int currentLife = playerMonsters[i].currentLife;
             int newLife = newPlayerMonsters[i].currentLife;
-            if (currentLife != newLife)
+            if (playerMonsters[i].currentLife != newLife)
             {
                 MonsterManager monsterManager = area.monsterVisual.slots.Children[i].GetComponentInChildren<MonsterManager>();
+                new DamageCommand(monsterManager, playerMonsters[i].currentLife - newLife).AddToQueue();
                 new ChangeTextCommand(ref monsterManager.LifeText, newLife.ToString()).AddToQueue();
-                currentLife = newLife;
+                playerMonsters[i].currentLife = newLife;
             }
         }
     }
@@ -351,6 +363,7 @@ public class GameStateSync : MonoBehaviour {
     private void EndDefend()
     {
         // update the server
+        Debug.Log("defend JSON");
         Debug.Log(JsonUtility.ToJson(defendRequest));
         RESTTemplate.AsyncPOST(SERVER_NAME + DEFEND_REQUEST , JsonUtility.ToJson(defendRequest));
 

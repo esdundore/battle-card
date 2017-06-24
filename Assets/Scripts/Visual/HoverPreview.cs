@@ -8,6 +8,7 @@ public class HoverPreview: MonoBehaviour
     public Vector3 TargetPosition;
     public float TargetScale;
     public GameObject previewGameObject;
+    public static GameObject previewCard;
     public bool ActivateInAwake = false;
 
     // PRIVATE FIELDS
@@ -83,6 +84,31 @@ public class HoverPreview: MonoBehaviour
 
         previewGameObject.transform.DOLocalMove(TargetPosition, 1f).SetEase(Ease.OutQuint);
         previewGameObject.transform.DOScale(TargetScale, 1f).SetEase(Ease.OutQuint);
+
+        SkillCardManager skillCardManager = GetComponentInParent<SkillCardManager>();
+        MonsterManager monsterManager = GetComponentInParent<MonsterManager>();
+        if (skillCardManager != null)
+        {
+            previewCard = GameObject.Instantiate(GameStateSync.Instance.SkillCardPrefab,
+                GameStateSync.Instance.previewCard.position,
+                Quaternion.Euler(new Vector3(0f, 0f, 0f))) as GameObject;
+            SkillCardManager manager = previewCard.GetComponent<SkillCardManager>();
+            manager.cardAsset = GetComponentInParent<SkillCardManager>().cardAsset;
+            manager.ReadCardFromAsset();
+            Destroy(manager.GetComponent<HoverPreview>());
+        }
+        else if (monsterManager != null)
+        {
+            previewCard = GameObject.Instantiate(GameStateSync.Instance.MonsterCardPrefab,
+                GameStateSync.Instance.previewCard.position,
+                Quaternion.Euler(new Vector3(0f, 0f, 0f))) as GameObject;
+            MonsterManager manager = previewCard.GetComponent<MonsterManager>();
+            manager.monsterAsset = GetComponentInParent<MonsterManager>().monsterAsset;
+            manager.ReadCardFromAsset();
+            Destroy(manager.GetComponent<HoverPreview>());
+        }
+        previewCard.transform.DOScale(1.3f, 1f).SetEase(Ease.OutQuint);
+
     }
 
     void StopThisPreview()
@@ -91,7 +117,8 @@ public class HoverPreview: MonoBehaviour
         previewGameObject.transform.localScale = Vector3.one;
         previewGameObject.transform.localPosition = Vector3.zero;
         if (TurnThisOffWhenPreviewing!=null)
-            TurnThisOffWhenPreviewing.SetActive(true); 
+            TurnThisOffWhenPreviewing.SetActive(true);
+        Destroy(previewCard);
     }
 
     // STATIC METHODS

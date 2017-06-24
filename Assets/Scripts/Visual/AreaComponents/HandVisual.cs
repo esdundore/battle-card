@@ -6,7 +6,6 @@ public class HandVisual : MonoBehaviour
 {
     // PUBLIC FIELDS
     public AreaPosition owner;
-    public bool TakeCardsOpenly = true;
     public SameDistanceChildren slots;
 
     [Header("Transform References")]
@@ -90,20 +89,20 @@ public class HandVisual : MonoBehaviour
         // move card to the hand;
         Sequence s = DOTween.Sequence();
 
-        // Debug.Log ("Not fast!!!");
-        if (canSee)
-        {
-            s.Append(card.transform.DOMove(DrawPreviewSpot.position, GameStateSync.Instance.CardTransitionTime));
-
-            if (TakeCardsOpenly)
-                s.Insert(0f, card.transform.DORotate(Vector3.zero, GameStateSync.Instance.CardTransitionTime));
-            else
-                s.Insert(0f, card.transform.DORotate(new Vector3(0f, 179f, 0f), GameStateSync.Instance.CardTransitionTime));
-            s.AppendInterval(GameStateSync.Instance.CardPreviewTime);
-        }
-
         // displace the card so that we can select it in the scene easier.
         s.Append(card.transform.DOLocalMove(slots.Children[0].transform.localPosition, GameStateSync.Instance.CardTransitionTime));
+
+        if (canSee)
+        {
+            //s.Append(card.transform.DOMove(DrawPreviewSpot.position, GameStateSync.Instance.CardTransitionTime));
+            s.Insert(0f, card.transform.DORotate(Vector3.zero, GameStateSync.Instance.CardTransitionTime));
+            //s.AppendInterval(GameStateSync.Instance.CardPreviewTime);
+        }
+        else
+        {
+            HoverPreview preview = card.GetComponent<HoverPreview>();
+            Destroy(preview);
+        }
 
         s.OnComplete(()=>ChangeLastCardStatusToInHand(card, w));
     }
@@ -143,7 +142,7 @@ public class HandVisual : MonoBehaviour
         {
             if (slots.Children[i].transform != null)
             {
-                HighlightCard(new Color32(), i, false);
+                HighlightCard(new Color32(255,255,255,255), i, false);
             }
         }
     }

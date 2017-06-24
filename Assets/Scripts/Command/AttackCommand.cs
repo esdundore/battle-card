@@ -17,6 +17,5 @@
     public override void StartCommandExecution()
     {
         playerArea.monsterVisual.AttackSequence(attackerIndex, defenderIndex, otherPlayerArea.monsterVisual);
-        Command.CommandExecutionComplete();
     }
 }

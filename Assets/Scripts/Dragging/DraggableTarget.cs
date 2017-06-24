@@ -11,7 +11,7 @@ public class DraggableTarget : DraggingActions
     {
         sr = GetComponent<SpriteRenderer>();
         lr = GetComponentInChildren<LineRenderer>();
-        lr.sortingLayerName = "Above Everything";
+        lr.sortingLayerName = GameStateSync.ABOVE_EVERYTHING_LAYER;
         triangle = transform.Find("Triangle");
         triangleSR = triangle.GetComponent<SpriteRenderer>();
     }
@@ -83,7 +83,7 @@ public class DraggableTarget : DraggingActions
         else
         {
             // highlight monster again
-            this.GetComponentInChildren<MonsterManager>().CardFaceGlowImage.enabled = true;
+            GetComponentInParent<MonsterManager>().CardFaceGlowImage.enabled = true;
         }
 
         transform.localPosition = new Vector3(0f, 0f, 0.4f);

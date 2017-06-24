@@ -98,6 +98,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Command\DamageCommand.cs" />
     <Compile Include="Assets\Scripts\Command\AttackCommand.cs" />
     <Compile Include="Assets\Scripts\Command\ChangeTextCommand.cs" />
     <Compile Include="Assets\Scripts\Command\Command.cs" />
@@ -109,14 +110,14 @@
     <Compile Include="Assets\Scripts\Command\PlaySkillCardCommand.cs" />
     <Compile Include="Assets\Scripts\Command\RemoveACardCommand.cs" />
     <Compile Include="Assets\Scripts\Command\ShowMessageCommand.cs" />
-    <Compile Include="Assets\Scripts\Dragging\DraggableTarget.cs" />
-    <Compile Include="Assets\Scripts\Dragging\DraggableCard.cs" />
     <Compile Include="Assets\Scripts\Dragging\Draggable.cs" />
+    <Compile Include="Assets\Scripts\Dragging\DraggableCard.cs" />
+    <Compile Include="Assets\Scripts\Dragging\DraggableTarget.cs" />
     <Compile Include="Assets\Scripts\Dragging\DraggingActions.cs" />
     <Compile Include="Assets\Scripts\Requests\CoroutineWithData.cs" />
     <Compile Include="Assets\Scripts\Requests\GameStateSync.cs" />
-    <Compile Include="Assets\Scripts\Requests\Model\AttackView.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\AttackRequestNoMap.cs" />
+    <Compile Include="Assets\Scripts\Requests\Model\AttackView.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\DefendRequest.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\DefendTarget.cs" />
     <Compile Include="Assets\Scripts\Requests\Model\DefendView.cs" />
@@ -140,22 +141,20 @@
     <Compile Include="Assets\Scripts\UI\Outlines by N Yoda\ModifiedShadow.cs" />
     <Compile Include="Assets\Scripts\UI\Outlines by N Yoda\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\UI\Outlines by N Yoda\Outline8.cs" />
-    <Compile Include="Assets\Scripts\Visual\AvatarManager.cs" />
+    <Compile Include="Assets\Scripts\Visual\AreaComponents\HandVisual.cs" />
+    <Compile Include="Assets\Scripts\Visual\AreaComponents\MonsterVisual.cs" />
+    <Compile Include="Assets\Scripts\Visual\AreaComponents\PlayerArea.cs" />
+    <Compile Include="Assets\Scripts\Visual\AreaComponents\PlayerDeckVisual.cs" />
     <Compile Include="Assets\Scripts\Visual\BetterCardRotation.cs" />
     <Compile Include="Assets\Scripts\Visual\DamageEffect.cs" />
     <Compile Include="Assets\Scripts\Visual\DamageEffectTest.cs" />
-    <Compile Include="Assets\Scripts\Visual\HandVisual.cs" />
     <Compile Include="Assets\Scripts\Visual\HoverPreview.cs" />
-    <Compile Include="Assets\Scripts\Visual\MessageManager.cs" />
-    <Compile Include="Assets\Scripts\Visual\MonsterAttackVisual.cs" />
-    <Compile Include="Assets\Scripts\Visual\MonsterManager.cs" />
-    <Compile Include="Assets\Scripts\Visual\MonsterVisual.cs" />
+    <Compile Include="Assets\Scripts\Visual\Managers\AvatarManager.cs" />
+    <Compile Include="Assets\Scripts\Visual\Managers\MessageManager.cs" />
+    <Compile Include="Assets\Scripts\Visual\Managers\MonsterManager.cs" />
+    <Compile Include="Assets\Scripts\Visual\Managers\SkillCardManager.cs" />
     <Compile Include="Assets\Scripts\Visual\PhaseButton.cs" />
-    <Compile Include="Assets\Scripts\Visual\PlayerArea.cs" />
-    <Compile Include="Assets\Scripts\Visual\PlayerDeckVisual.cs" />
     <Compile Include="Assets\Scripts\Visual\SameDistanceChildren.cs" />
-    <Compile Include="Assets\Scripts\Visual\SkillCardManager.cs" />
-    <Compile Include="Assets\Scripts\Visual\TableVisual.cs" />
     <Compile Include="Assets\Scripts\Visual\WhereIsTheCardOrMonster.cs" />
   </ItemGroup>
   <ItemGroup>
