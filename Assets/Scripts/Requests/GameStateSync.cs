@@ -166,7 +166,7 @@ public class GameStateSync : MonoBehaviour {
             {
                 // play this monster for the first time
                 Monster monster = newPlayerMonsters[i];
-                MonsterAsset monsterAsset = Resources.Load<MonsterAsset>("Cards/" + monster.id + "/" + monster.id) as MonsterAsset;
+                MonsterAsset monsterAsset = Resources.Load<MonsterAsset>("Cards/" + monster.mainLineage + "/" + monster.id) as MonsterAsset;
                 new PlayAMonsterCommand(area, monsterAsset, i).AddToQueue();
                 // sync monster data to local
                 playerMonsters.Insert(i, monster);
